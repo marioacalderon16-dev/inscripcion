@@ -294,6 +294,39 @@ fieldset.campo legend {
   text-align: center;
 }
 
+/* ---------- Patrocinador (pie de la tarjeta) ---------- */
+.patrocinio {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 2rem;
+  background: #f8f9fc;
+  border-top: 1px solid #eef0f5;
+}
+
+.patrocinio__logo {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(17, 24, 39, .18);
+}
+
+.patrocinio__etiqueta {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.patrocinio__texto {
+  margin-top: .2rem;
+  font-size: .9rem;
+  color: var(--texto);
+}
+
 /* ---------- Avisos globales (éxito / error) ---------- */
 .aviso {
   margin: 1.2rem 2rem 0;
@@ -399,4 +432,5 @@ fieldset.campo legend {
   .tarjeta__cuerpo { padding: 1.4rem 1.2rem 1.8rem; }
   .tarjeta__cabecera { padding: 1.5rem 1.2rem 1.3rem; }
   .aviso { margin: 1rem 1.2rem 0; }
+  .patrocinio { padding: 1rem 1.2rem; }
 }
