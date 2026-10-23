@@ -1,0 +1,165 @@
+<?php
+/**
+ * ============================================================
+ *  procesar.php — Backend del formulario de inscripción
+ * ------------------------------------------------------------
+ *  Recibe los datos por POST, los valida en el servidor y los
+ *  guarda en MySQL o en un archivo JSON (según config.php).
+ *
+ *  La respuesta siempre es JSON:
+ *  { "ok": true|false, "mensaje": "...", "errores": {campo: msg} }
+ * ============================================================
+ */
+declare(strict_types=1);
+header('Content-Type: application/json; charset=utf-8');
+
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/notificar.php';
+
+/* 1) Solo se acepta el método POST -------------------------------- */
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    responder(false, 'Método no permitido.', [], 405);
+}
+
+/* 2) Honeypot anti-spam: el campo oculto debe llegar vacío --------- */
+if (!empty($_POST['sitio_web'])) {
+    /* Se simula éxito para no dar pistas al bot, pero no se guarda nada */
+    responder(true, 'Inscripción registrada correctamente.');
+}
+
+/* 3) Recoger y limpiar los datos ----------------------------------- */
+$cedula  = str_replace([' ', '-', '.'], '', limpiar($_POST['cedula']  ?? ''));
+$nombre  = limpiar($_POST['nombre']  ?? '');
+$celular = str_replace([' ', '-'], '', limpiar($_POST['celular'] ?? ''));
+$email   = limpiar($_POST['email']   ?? '');
+
+/* 4) Validación en el servidor (mismas reglas que en JS) ----------- */
+$errores = [];
+
+if ($cedula === '') {
+    $errores['cedula'] = 'La cédula es obligatoria.';
+} elseif (!preg_match('/^\d{6,15}$/', $cedula)) {
+    $errores['cedula'] = 'La cédula solo debe contener números (entre 6 y 15 dígitos).';
+}
+
+if ($nombre === '') {
+    $errores['nombre'] = 'El nombre completo es obligatorio.';
+} elseif (mb_strlen($nombre) < 5) {
+    $errores['nombre'] = 'El nombre debe tener al menos 5 caracteres.';
+} elseif (!preg_match('/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,}(?:[ \'\-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,})+$/u', $nombre)) {
+    $errores['nombre'] = 'Ingrese nombres y apellidos (solo letras).';
+}
+
+if ($celular === '') {
+    $errores['celular'] = 'El número de celular es obligatorio.';
+} elseif (!preg_match('/^\d{7,15}$/', $celular)) {
+    $errores['celular'] = 'El celular solo debe contener números (entre 7 y 15 dígitos).';
+}
+
+if ($email === '') {
+    $errores['email'] = 'El email es obligatorio.';
+} elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errores['email'] = 'Ingrese un email válido.';
+}
+
+if (count($errores) > 0) {
+    responder(false, 'Revise los campos marcados.', $errores, 422);
+}
+
+/* 5) Guardar según el modo configurado ----------------------------- */
+try {
+    if (MODO_ALMACENAMIENTO === 'mysql') {
+        guardarEnMysql($cedula, $nombre, $celular, $email);
+    } else {
+        guardarEnJson($cedula, $nombre, $celular, $email);
+    }
+
+    /* 6) Enviar notificaciones por email.
+       Nunca interrumpe el flujo: si el correo falla, la
+       inscripción ya quedó guardada y el error se registra. */
+    enviarNotificacionesRegistro([
+        'cedula'  => $cedula,
+        'nombre'  => $nombre,
+        'celular' => $celular,
+        'email'   => $email,
+    ]);
+
+    responder(true, '¡Inscripción registrada con éxito!');
+} catch (DominioDuplicadoException $e) {
+    responder(false, 'Esta cédula ya se encuentra registrada.',
+        ['cedula' => 'Cédula ya registrada.'], 409);
+} catch (Throwable $e) {
+    error_log('[formulario-inscripcion] ' . $e->getMessage());
+    responder(false, 'Ocurrió un error inesperado. Intente nuevamente.', [], 500);
+}
+
+/* ==================================================================
+ *  Funciones de almacenamiento
+ * ================================================================== */
+
+/**
+ * Guarda la inscripción en la tabla MySQL "inscripciones".
+ * Lanza DominioDuplicadoException si la cédula ya existe.
+ */
+function guardarEnMysql(string $cedula, string $nombre, string $celular, string $email): void
+{
+    $sql = 'INSERT INTO inscripciones (cedula, nombre, celular, email)
+            VALUES (:cedula, :nombre, :celular, :email)';
+
+    try {
+        $sentencia = obtenerConexion()->prepare($sql);
+        $sentencia->execute([
+            ':cedula'  => $cedula,
+            ':nombre'  => $nombre,
+            ':celular' => $celular,
+            ':email'   => $email,
+        ]);
+    } catch (PDOException $e) {
+        /* 23000 = violación de integridad (cédula duplicada, clave UNIQUE) */
+        if ($e->getCode() === '23000') {
+            throw new DominioDuplicadoException();
+        }
+        throw $e;
+    }
+}
+
+/**
+ * Guarda la inscripción en registros.json (modo sin base de datos).
+ * Lanza DominioDuplicadoException si la cédula ya existe.
+ */
+function guardarEnJson(string $cedula, string $nombre, string $celular, string $email): void
+{
+    $registros = leerRegistrosJson();
+
+    foreach ($registros as $registro) {
+        if (($registro['cedula'] ?? '') === $cedula) {
+            throw new DominioDuplicadoException();
+        }
+    }
+
+    $registros[] = [
+        'cedula'  => $cedula,
+        'nombre'  => $nombre,
+        'celular' => $celular,
+        'email'   => $email,
+        'fecha'   => date('Y-m-d H:i:s'),
+    ];
+
+    $json = json_encode($registros, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    if ($json === false) {
+        throw new RuntimeException('No se pudo codificar el registro.');
+    }
+
+    /* Escritura segura con bloqueo de archivo (evita corrupción) */
+    $archivo = fopen(ARCHIVO_JSON, 'c');
+    if ($archivo === false) {
+        throw new RuntimeException('No se pudo abrir el archivo de registros.');
+    }
+
+    flock($archivo, LOCK_EX);
+    ftruncate($archivo, 0);
+    fwrite($archivo, $json);
+    fflush($archivo);
+    flock($archivo, LOCK_UN);
+    fclose($archivo);
+}

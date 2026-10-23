@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Formulario de inscripción: registre sus datos de forma rápida y segura.">
+  <title>Formulario de Inscripción — Travesía La Diosa del Quininí</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <main class="contenedor">
+    <section class="tarjeta" aria-label="Formulario de inscripción">
+
+      <!-- Cabecera de la tarjeta -->
+      <header class="tarjeta__cabecera">
+        <div class="cabecera__icono" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M19 8v6M22 11h-6"/>
+          </svg>
+        </div>
+        <h1>Formulario de Inscripción</h1>
+        <p class="cabecera__evento">Travesía La Diosa del Quininí</p>
+        <p class="cabecera__descripcion">Complete sus datos para registrarse</p>
+      </header>
+
+      <!-- Aviso global (éxito o error del servidor) -->
+      <div id="aviso" class="aviso aviso--oculto" role="alert" aria-live="polite"></div>
+
+      <form id="formulario" novalidate>
+
+        <!-- Honeypot anti-spam: invisible para las personas, los bots lo rellenan -->
+        <input type="text" name="sitio_web" id="sitio_web" class="campo-honeypot"
+               tabindex="-1" autocomplete="off" aria-hidden="true">
+
+        <!-- Cédula -->
+        <div class="campo">
+          <label for="cedula">Cédula <span class="obligatorio">*</span></label>
+          <input type="text" id="cedula" name="cedula"
+                 placeholder="Ej. 1712345678"
+                 inputmode="numeric" maxlength="15" autocomplete="off">
+          <small class="campo__error" id="error-cedula"></small>
+        </div>
+
+        <!-- Nombre completo -->
+        <div class="campo">
+          <label for="nombre">Nombre completo <span class="obligatorio">*</span></label>
+          <input type="text" id="nombre" name="nombre"
+                 placeholder="Ej. María Pérez González"
+                 autocomplete="name" maxlength="150">
+          <small class="campo__error" id="error-nombre"></small>
+        </div>
+
+        <!-- Celular -->
+        <div class="campo">
+          <label for="celular">Celular <span class="obligatorio">*</span></label>
+          <input type="tel" id="celular" name="celular"
+                 placeholder="Ej. 0991234567"
+                 inputmode="tel" maxlength="20" autocomplete="tel">
+          <small class="campo__error" id="error-celular"></small>
+        </div>
+
+        <!-- Email -->
+        <div class="campo">
+          <label for="email">Email <span class="obligatorio">*</span></label>
+          <input type="email" id="email" name="email"
+                 placeholder="Ej. maria@correo.com"
+                 autocomplete="email" maxlength="150">
+          <small class="campo__error" id="error-email"></small>
+        </div>
+
+        <button type="submit" id="boton-enviar" class="boton">
+          <span class="boton__texto">Inscribirme</span>
+        </button>
+
+        <p class="nota"><span class="obligatorio">*</span> Campos obligatorios.</p>
+      </form>
+    </section>
+  </main>
+
+  <script src="js/validacion.js"></script>
+</body>
+</html>

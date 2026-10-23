@@ -1,0 +1,322 @@
+/* ============================================================
+   estilos.css — Formulario de Inscripción
+   Diseño limpio, moderno y responsivo (sin dependencias)
+   ============================================================ */
+
+:root {
+  --primario:        #4f46e5;
+  --primario-oscuro: #4338ca;
+  --primario-suave:  #eef2ff;
+  --violeta:         #7c3aed;
+  --exito:           #15803d;
+  --exito-fondo:     #f0fdf4;
+  --exito-borde:     #bbf7d0;
+  --error:           #dc2626;
+  --error-fondo:     #fef2f2;
+  --error-borde:     #fecaca;
+  --texto:           #1f2937;
+  --texto-suave:     #6b7280;
+  --borde:           #d1d5db;
+  --blanco:          #ffffff;
+  --radio:           16px;
+  --sombra:          0 12px 34px rgba(17, 24, 39, .12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 45%, #ede9fe 100%);
+  min-height: 100vh;
+  color: var(--texto);
+  padding: 2rem 1rem;
+}
+
+.contenedor {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 4rem);
+}
+
+.tarjeta {
+  background: var(--blanco);
+  width: 100%;
+  max-width: 480px;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  overflow: hidden;
+}
+
+.tarjeta--ancha { max-width: 900px; }
+
+/* ---------- Cabecera de la tarjeta ---------- */
+.tarjeta__cabecera {
+  background: linear-gradient(135deg, var(--primario), var(--violeta));
+  color: #fff;
+  padding: 1.9rem 2rem 1.7rem;
+  text-align: center;
+}
+
+.tarjeta__cabecera h1 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.tarjeta__cabecera p {
+  margin-top: .35rem;
+  font-size: .92rem;
+  opacity: .85;
+}
+
+/* Nombre del evento (destacado bajo el título) */
+.tarjeta__cabecera .cabecera__evento {
+  display: inline-block;
+  margin-top: .55rem;
+  padding: .35rem 1rem;
+  background: rgba(255, 255, 255, .16);
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 999px;
+  font-size: .98rem;
+  font-weight: 600;
+  letter-spacing: .3px;
+  opacity: 1;
+}
+
+/* Descripción bajo el nombre del evento */
+.tarjeta__cabecera .cabecera__descripcion {
+  margin-top: .6rem;
+  font-size: .92rem;
+  opacity: .85;
+}
+
+.cabecera__icono {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto .8rem;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, .16);
+  border-radius: 50%;
+}
+
+/* ---------- Cuerpo del formulario ---------- */
+.tarjeta form,
+.tarjeta__cuerpo {
+  padding: 1.8rem 2rem 2.1rem;
+}
+
+.campo { margin-bottom: 1.1rem; }
+
+.campo label {
+  display: block;
+  font-size: .9rem;
+  font-weight: 600;
+  margin-bottom: .4rem;
+}
+
+.obligatorio { color: var(--error); }
+
+.campo input {
+  width: 100%;
+  padding: .8rem 1rem;
+  font-size: .95rem;
+  font-family: inherit;
+  color: var(--texto);
+  background: #fafbfc;
+  border: 1.5px solid var(--borde);
+  border-radius: 10px;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.campo input::placeholder { color: #9ca3af; }
+
+.campo input:focus {
+  outline: none;
+  background: #fff;
+  border-color: var(--primario);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, .13);
+}
+
+/* Estados de validación de cada campo */
+.campo--error input {
+  border-color: var(--error);
+  background: var(--error-fondo);
+}
+.campo--error input:focus {
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, .12);
+}
+
+.campo--valido input { border-color: #34d399; }
+.campo--valido input:focus {
+  box-shadow: 0 0 0 4px rgba(52, 211, 153, .15);
+}
+
+.campo__error {
+  display: block;
+  min-height: 1.05rem;
+  margin-top: .3rem;
+  font-size: .8rem;
+  color: var(--error);
+}
+
+/* ---------- Botón de envío ---------- */
+.boton {
+  width: 100%;
+  margin-top: .4rem;
+  padding: .95rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primario), var(--violeta));
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(79, 70, 229, .28);
+  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+
+.boton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(79, 70, 229, .34);
+}
+
+.boton:active:not(:disabled) { transform: translateY(0); }
+
+.boton:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Indicador de carga (spinner) */
+.boton--cargando::after {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-left: .55rem;
+  vertical-align: -.15em;
+  border: 2.5px solid rgba(255, 255, 255, .45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: girar .7s linear infinite;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.nota {
+  margin-top: .9rem;
+  font-size: .8rem;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+/* ---------- Avisos globales (éxito / error) ---------- */
+.aviso {
+  margin: 1.2rem 2rem 0;
+  padding: .85rem 1rem;
+  border-radius: 10px;
+  font-size: .92rem;
+  font-weight: 500;
+  animation: aparecer .25s ease;
+}
+
+.aviso--exito {
+  background: var(--exito-fondo);
+  color: var(--exito);
+  border: 1px solid var(--exito-borde);
+}
+
+.aviso--error {
+  background: var(--error-fondo);
+  color: var(--error);
+  border: 1px solid var(--error-borde);
+}
+
+.aviso--oculto { display: none; }
+
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Honeypot (campo oculto anti-spam) ---------- */
+.campo-honeypot {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0;
+}
+
+/* ---------- Tabla de registros (registros.php) ---------- */
+.badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 600;
+  padding: .3rem .9rem;
+  border-radius: 999px;
+  margin-top: .5rem;
+}
+
+.tabla-contenedor {
+  margin-top: 1.3rem;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.tabla-contenedor table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+  min-width: 680px;
+}
+
+.tabla-contenedor thead th {
+  background: var(--primario-suave);
+  color: var(--primario-oscuro);
+  text-align: left;
+  font-weight: 600;
+  padding: .8rem 1rem;
+  white-space: nowrap;
+}
+
+.tabla-contenedor tbody td {
+  padding: .75rem 1rem;
+  border-top: 1px solid #f1f3f7;
+}
+
+.tabla-contenedor tbody tr:nth-child(even) { background: #fafbfe; }
+.tabla-contenedor tbody tr:hover { background: #f4f5ff; }
+
+.vacio {
+  padding: 2.2rem 1rem;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+.enlace {
+  display: inline-block;
+  margin-top: 1.4rem;
+  color: var(--primario);
+  font-weight: 600;
+  font-size: .92rem;
+  text-decoration: none;
+}
+
+.enlace:hover { text-decoration: underline; }
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 520px) {
+  body { padding: 1.2rem .8rem; }
+  .tarjeta form,
+  .tarjeta__cuerpo { padding: 1.4rem 1.2rem 1.8rem; }
+  .tarjeta__cabecera { padding: 1.5rem 1.2rem 1.3rem; }
+  .aviso { margin: 1rem 1.2rem 0; }
+}

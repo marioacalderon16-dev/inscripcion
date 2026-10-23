@@ -1,0 +1,97 @@
+<?php
+/**
+ * ============================================================
+ *  config.php — Configuración del formulario de inscripción
+ * ------------------------------------------------------------
+ *  MODO DE ALMACENAMIENTO (edite MODO_ALMACENAMIENTO):
+ *
+ *  - 'json'  → Guarda cada inscripción en registros.json.
+ *              Funciona de inmediato, no necesita base de datos.
+ *              Ideal para pruebas o volúmenes pequeños.
+ *
+ *  - 'mysql' → Guarda en una base de datos MySQL/MariaDB.
+ *              Recomendado para producción. Antes de usarlo:
+ *              1) Importe database.sql (phpMyAdmin o consola:
+ *                 mysql -u root -p < database.sql)
+ *              2) Ajuste las credenciales de conexión de abajo.
+ * ============================================================
+ */
+declare(strict_types=1);
+
+const MODO_ALMACENAMIENTO = 'json';   /* 'json' o 'mysql' */
+
+/* ---------- Credenciales MySQL (solo si modo = 'mysql') ---------- */
+const DB_HOST = 'localhost';
+const DB_NAME = 'inscripciones';
+const DB_USER = 'root';
+const DB_PASS = '';
+
+/* ---------- Archivo JSON (solo si modo = 'json') ----------------- */
+const ARCHIVO_JSON = __DIR__ . '/registros.json';
+
+/* ---------- Notificaciones por email ----------------------------- */
+/* Se envían al guardar una inscripción usando la función mail()
+   de PHP. Si el envío falla (ej. servidor sin correo configurado),
+   la inscripción se guarda igual y el error queda en el log.
+   Personalice estas direcciones antes de subir a producción.       */
+const NOTIFICACION_ACTIVADA       = true;                     // notificar al administrador
+const EMAIL_NOTIFICACION          = 'admin@tudominio.com';    // correo que recibe la notificación
+const EMAIL_REMITENTE             = 'no-reply@tudominio.com'; // remitente de los correos
+const ENVIAR_CONFIRMACION_USUARIO = true;                     // confirmación al inscrito
+
+/* ==================================================================
+ *  Funciones auxiliares
+ * ================================================================== */
+
+/** Limpia espacios al inicio y al final de un valor recibido. */
+function limpiar(string $valor): string
+{
+    return trim($valor);
+}
+
+/** Devuelve una conexión PDO configurada (modo mysql). */
+function obtenerConexion(): PDO
+{
+    $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+
+    $opciones = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+
+    return new PDO($dsn, DB_USER, DB_PASS, $opciones);
+}
+
+/** Lee todas las inscripciones del archivo JSON (modo json). */
+function leerRegistrosJson(): array
+{
+    if (!is_file(ARCHIVO_JSON)) {
+        return [];
+    }
+
+    $contenido = (string) file_get_contents(ARCHIVO_JSON);
+    $datos     = json_decode($contenido, true);
+
+    return is_array($datos) ? $datos : [];
+}
+
+/** Excepción interna para registros duplicados (cédula repetida). */
+class DominioDuplicadoException extends Exception
+{
+}
+
+/** Envía la respuesta JSON y finaliza el script. */
+function responder(bool $ok, string $mensaje, array $errores = [], int $codigoHttp = 200): void
+{
+    http_response_code($codigoHttp);
+    echo json_encode(
+        [
+            'ok'      => $ok,
+            'mensaje' => $mensaje,
+            'errores' => $errores,
+        ],
+        JSON_UNESCAPED_UNICODE
+    );
+    exit;
+}
