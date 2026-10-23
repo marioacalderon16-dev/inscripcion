@@ -32,6 +32,9 @@ $cedula  = str_replace([' ', '-', '.'], '', limpiar($_POST['cedula']  ?? ''));
 $nombre  = limpiar($_POST['nombre']  ?? '');
 $celular = str_replace([' ', '-'], '', limpiar($_POST['celular'] ?? ''));
 $email   = strtolower(limpiar($_POST['email']   ?? ''));
+$eps     = limpiar($_POST['eps']     ?? '');
+$rh      = limpiar($_POST['rh']      ?? '');
+$telefonoFamiliar = str_replace([' ', '-'], '', limpiar($_POST['telefono_familiar'] ?? ''));
 
 /* 4) Validación en el servidor (mismas reglas que en JS) ----------- */
 $errores = [];
@@ -62,6 +65,24 @@ if ($email === '') {
     $errores['email'] = 'Ingrese un email válido.';
 }
 
+if ($eps === '') {
+    $errores['eps'] = 'La EPS es obligatoria.';
+} elseif (mb_strlen($eps) < 2 || mb_strlen($eps) > 100) {
+    $errores['eps'] = 'Ingrese el nombre de su EPS.';
+}
+
+if (!in_array($rh, ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'], true)) {
+    $errores['rh'] = 'Seleccione su tipo de sangre.';
+}
+
+if ($telefonoFamiliar === '') {
+    $errores['telefono_familiar'] = 'El teléfono de un familiar es obligatorio.';
+} elseif (!preg_match('/^\d{7,15}$/', $telefonoFamiliar)) {
+    $errores['telefono_familiar'] = 'El teléfono solo debe contener números (entre 7 y 15 dígitos).';
+} elseif ($telefonoFamiliar === $celular) {
+    $errores['telefono_familiar'] = 'Debe ser diferente a su propio celular.';
+}
+
 if (count($errores) > 0) {
     responder(false, 'Revise los campos marcados.', $errores, 422);
 }
@@ -69,9 +90,9 @@ if (count($errores) > 0) {
 /* 5) Guardar según el modo configurado ----------------------------- */
 try {
     if (MODO_ALMACENAMIENTO === 'mysql') {
-        guardarEnMysql($cedula, $nombre, $celular, $email);
+        guardarEnMysql($cedula, $nombre, $celular, $email, $eps, $rh, $telefonoFamiliar);
     } else {
-        guardarEnJson($cedula, $nombre, $celular, $email);
+        guardarEnJson($cedula, $nombre, $celular, $email, $eps, $rh, $telefonoFamiliar);
     }
 
     /* 6) Enviar notificaciones por email.
@@ -82,6 +103,9 @@ try {
         'nombre'  => $nombre,
         'celular' => $celular,
         'email'   => $email,
+        'eps'     => $eps,
+        'rh'      => $rh,
+        'telefono_familiar' => $telefonoFamiliar,
     ]);
 
     responder(true, '¡Inscripción registrada con éxito!');
@@ -105,10 +129,11 @@ try {
  * Guarda la inscripción en la tabla MySQL "inscripciones".
  * Lanza DominioDuplicadoException si la cédula o el email ya existen.
  */
-function guardarEnMysql(string $cedula, string $nombre, string $celular, string $email): void
+function guardarEnMysql(string $cedula, string $nombre, string $celular, string $email,
+    string $eps, string $rh, string $telefonoFamiliar): void
 {
-    $sql = 'INSERT INTO inscripciones (cedula, nombre, celular, email)
-            VALUES (:cedula, :nombre, :celular, :email)';
+    $sql = 'INSERT INTO inscripciones (cedula, nombre, celular, email, eps, rh, telefono_familiar)
+            VALUES (:cedula, :nombre, :celular, :email, :eps, :rh, :telefono_familiar)';
 
     try {
         $sentencia = obtenerConexion()->prepare($sql);
@@ -117,6 +142,9 @@ function guardarEnMysql(string $cedula, string $nombre, string $celular, string 
             ':nombre'  => $nombre,
             ':celular' => $celular,
             ':email'   => $email,
+            ':eps'     => $eps,
+            ':rh'      => $rh,
+            ':telefono_familiar' => $telefonoFamiliar,
         ]);
     } catch (PDOException $e) {
         /* 23000 = violación de integridad (cédula duplicada, clave UNIQUE) */
@@ -133,7 +161,8 @@ function guardarEnMysql(string $cedula, string $nombre, string $celular, string 
  * Guarda la inscripción en registros.json (modo sin base de datos).
  * Lanza DominioDuplicadoException si la cédula o el email ya existen.
  */
-function guardarEnJson(string $cedula, string $nombre, string $celular, string $email): void
+function guardarEnJson(string $cedula, string $nombre, string $celular, string $email,
+    string $eps, string $rh, string $telefonoFamiliar): void
 {
     $registros = leerRegistrosJson();
 
@@ -151,6 +180,9 @@ function guardarEnJson(string $cedula, string $nombre, string $celular, string $
         'nombre'  => $nombre,
         'celular' => $celular,
         'email'   => $email,
+        'eps'     => $eps,
+        'rh'      => $rh,
+        'telefono_familiar' => $telefonoFamiliar,
         'fecha'   => date('Y-m-d H:i:s'),
     ];
 

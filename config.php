@@ -72,11 +72,30 @@ function obtenerConexion(): PDO
            nombre         VARCHAR(150) NOT NULL,
            celular        VARCHAR(20)  NOT NULL,
            email          VARCHAR(150) NOT NULL,
+           eps            VARCHAR(100) NOT NULL DEFAULT \'\',
+           rh             VARCHAR(3)   NOT NULL DEFAULT \'\',
+           telefono_familiar VARCHAR(20) NOT NULL DEFAULT \'\',
            fecha_registro TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
            UNIQUE KEY uq_inscripciones_cedula (cedula),
            UNIQUE KEY uq_inscripciones_email (email)
          ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci'
     );
+
+    /* Agrega las columnas nuevas a tablas creadas con el esquema anterior. */
+    $existentes = $pdo->query(
+        "SELECT COLUMN_NAME FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'inscripciones'"
+    )->fetchAll(PDO::FETCH_COLUMN);
+    $nuevas = [
+        'eps'               => "VARCHAR(100) NOT NULL DEFAULT '' AFTER email",
+        'rh'                => "VARCHAR(3) NOT NULL DEFAULT '' AFTER eps",
+        'telefono_familiar' => "VARCHAR(20) NOT NULL DEFAULT '' AFTER rh",
+    ];
+    foreach ($nuevas as $columna => $definicion) {
+        if (!in_array($columna, $existentes, true)) {
+            $pdo->exec("ALTER TABLE inscripciones ADD COLUMN $columna $definicion");
+        }
+    }
 
     return $pdo;
 }

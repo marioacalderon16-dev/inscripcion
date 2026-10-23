@@ -17,7 +17,10 @@ const campos = {
   cedula:  document.getElementById('cedula'),
   nombre:  document.getElementById('nombre'),
   celular: document.getElementById('celular'),
-  email:   document.getElementById('email')
+  email:   document.getElementById('email'),
+  eps:     document.getElementById('eps'),
+  rh:      document.getElementById('grupo-rh'),   /* fieldset con los radios */
+  telefono_familiar: document.getElementById('telefono_familiar')
 };
 
 /* ---------- Reglas de validación (iguales a las de PHP) ---------- */
@@ -73,11 +76,44 @@ function validarEmail(mostrarError = true) {
   return aplicarResultado('email', mensaje, mostrarError);
 }
 
+function validarEps(mostrarError = true) {
+  const valor = campos.eps.value.trim();
+  let mensaje = '';
+  if (valor === '') {
+    mensaje = 'La EPS es obligatoria.';
+  } else if (valor.length < 2) {
+    mensaje = 'Ingrese el nombre de su EPS.';
+  }
+  return aplicarResultado('eps', mensaje, mostrarError);
+}
+
+function validarRh(mostrarError = true) {
+  const mensaje = formulario.elements.rh.value === '' ? 'Seleccione su tipo de sangre.' : '';
+  return aplicarResultado('rh', mensaje, mostrarError);
+}
+
+function validarTelefonoFamiliar(mostrarError = true) {
+  const valor   = campos.telefono_familiar.value.replace(/[ \-]/g, '').trim();
+  const celular = campos.celular.value.replace(/[ \-]/g, '').trim();
+  let mensaje = '';
+  if (valor === '') {
+    mensaje = 'El teléfono de un familiar es obligatorio.';
+  } else if (!RE_CELULAR.test(valor)) {
+    mensaje = 'Debe contener solo números (entre 7 y 15 dígitos).';
+  } else if (valor === celular) {
+    mensaje = 'Debe ser diferente a su propio celular.';
+  }
+  return aplicarResultado('telefono_familiar', mensaje, mostrarError);
+}
+
 const validadores = {
   cedula:  validarCedula,
   nombre:  validarNombre,
   celular: validarCelular,
-  email:   validarEmail
+  email:   validarEmail,
+  eps:     validarEps,
+  rh:      validarRh,
+  telefono_familiar: validarTelefonoFamiliar
 };
 
 /* ---------- Utilidades visuales ---------- */
@@ -113,6 +149,7 @@ function ocultarAviso() {
 
 /* ---------- Validación en vivo ---------- */
 Object.keys(campos).forEach((nombre) => {
+  if (nombre === 'rh') return;   /* los radios se validan con 'change' */
   campos[nombre].addEventListener('blur', () => validadores[nombre]());
   campos[nombre].addEventListener('input', () => {
     /* Revalida en caliente solo si el campo ya estaba marcado con error */
@@ -121,6 +158,8 @@ Object.keys(campos).forEach((nombre) => {
     }
   });
 });
+
+campos.rh.addEventListener('change', () => validarRh());
 
 /* Filtros de escritura: restringen caracteres desde el teclado */
 campos.cedula.addEventListener('input', () => {
@@ -135,6 +174,10 @@ campos.celular.addEventListener('input', () => {
   campos.celular.value = campos.celular.value.replace(/[^\d]/g, '');
 });
 
+campos.telefono_familiar.addEventListener('input', () => {
+  campos.telefono_familiar.value = campos.telefono_familiar.value.replace(/[^\d]/g, '');
+});
+
 /* ---------- Envío del formulario (AJAX con fetch) ---------- */
 formulario.addEventListener('submit', async (evento) => {
   evento.preventDefault();
@@ -146,7 +189,8 @@ formulario.addEventListener('submit', async (evento) => {
     const primerError = Object.keys(campos).find((n) =>
       grupo(n).classList.contains('campo--error'));
     mostrarAviso('error', 'Por favor corrija los campos marcados.');
-    if (primerError) campos[primerError].focus();
+    /* En el grupo RH se enfoca el primer radio */
+    if (primerError) (campos[primerError].querySelector('input') || campos[primerError]).focus();
     return;
   }
 

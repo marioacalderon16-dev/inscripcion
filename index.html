@@ -35,6 +35,8 @@
         <input type="text" name="sitio_web" id="sitio_web" class="campo-honeypot"
                tabindex="-1" autocomplete="off" aria-hidden="true">
 
+        <h2 class="seccion-titulo">Datos personales</h2>
+
         <!-- Cédula -->
         <div class="campo">
           <label for="cedula">Cédula <span class="obligatorio">*</span></label>
@@ -69,6 +71,52 @@
                  placeholder="Ej. maria@correo.com"
                  autocomplete="email" maxlength="150">
           <small class="campo__error" id="error-email"></small>
+        </div>
+
+        <h2 class="seccion-titulo">Salud y contacto de emergencia</h2>
+
+        <!-- EPS -->
+        <div class="campo">
+          <label for="eps">EPS <span class="obligatorio">*</span></label>
+          <input type="text" id="eps" name="eps" list="lista-eps"
+                 placeholder="Escriba o seleccione su EPS"
+                 maxlength="100" autocomplete="off">
+          <datalist id="lista-eps">
+            <option value="Nueva EPS"><option value="Sura"><option value="Sanitas">
+            <option value="Salud Total"><option value="Compensar"><option value="Famisanar">
+            <option value="Coosalud"><option value="Mutual Ser"><option value="Emssanar">
+            <option value="Aliansalud"><option value="Asmet Salud"><option value="Capital Salud">
+            <option value="Cajacopi"><option value="Savia Salud"><option value="SOS - Servicio Occidental de Salud">
+            <option value="Comfenalco Valle"><option value="Capresoca"><option value="Mallamas">
+            <option value="Pijaos Salud"><option value="Anas Wayuu"><option value="Dusakawi">
+          </datalist>
+          <small class="campo__error" id="error-eps"></small>
+        </div>
+
+        <!-- RH (tipo de sangre) -->
+        <fieldset class="campo" id="grupo-rh">
+          <legend>Tipo de sangre (RH) <span class="obligatorio">*</span></legend>
+          <div class="opciones-rh">
+            <label class="opcion-rh"><input type="radio" name="rh" value="O+"><span>O+</span></label>
+            <label class="opcion-rh"><input type="radio" name="rh" value="O-"><span>O−</span></label>
+            <label class="opcion-rh"><input type="radio" name="rh" value="A+"><span>A+</span></label>
+            <label class="opcion-rh"><input type="radio" name="rh" value="A-"><span>A−</span></label>
+            <label class="opcion-rh"><input type="radio" name="rh" value="B+"><span>B+</span></label>
+            <label class="opcion-rh"><input type="radio" name="rh" value="B-"><span>B−</span></label>
+            <label class="opcion-rh"><input type="radio" name="rh" value="AB+"><span>AB+</span></label>
+            <label class="opcion-rh"><input type="radio" name="rh" value="AB-"><span>AB−</span></label>
+          </div>
+          <small class="campo__error" id="error-rh"></small>
+        </fieldset>
+
+        <!-- Teléfono familiar -->
+        <div class="campo">
+          <label for="telefono_familiar">Teléfono de un familiar <span class="obligatorio">*</span></label>
+          <input type="tel" id="telefono_familiar" name="telefono_familiar"
+                 placeholder="Ej. 3109876543"
+                 inputmode="tel" maxlength="20" autocomplete="off">
+          <small class="campo__ayuda">Lo contactaremos solo en caso de emergencia.</small>
+          <small class="campo__error" id="error-telefono_familiar"></small>
         </div>
 
         <button type="submit" id="boton-enviar" class="boton">

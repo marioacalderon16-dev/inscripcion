@@ -17,7 +17,7 @@ $errorCarga = '';
 try {
     if (MODO_ALMACENAMIENTO === 'mysql') {
         $registros = obtenerConexion()->query(
-            'SELECT cedula, nombre, celular, email, fecha_registro
+            'SELECT cedula, nombre, celular, email, eps, rh, telefono_familiar, fecha_registro
              FROM inscripciones
              ORDER BY fecha_registro DESC'
         )->fetchAll();
@@ -34,11 +34,12 @@ if (isset($_GET['csv']) && $errorCarga === '') {
     header('Content-Disposition: attachment; filename="inscripciones-' . date('Y-m-d') . '.csv"');
     $salida = fopen('php://output', 'w');
     fwrite($salida, "\xEF\xBB\xBF"); // BOM para que Excel lea bien los acentos
-    fputcsv($salida, ['Cédula', 'Nombre', 'Celular', 'Email', 'Fecha'], ';');
+    fputcsv($salida, ['Cédula', 'Nombre', 'Celular', 'Email', 'EPS', 'RH', 'Teléfono familiar', 'Fecha'], ';');
     foreach ($registros as $r) {
         fputcsv($salida, [
             $r['cedula'] ?? '', $r['nombre'] ?? '', $r['celular'] ?? '',
-            $r['email'] ?? '', $r['fecha_registro'] ?? $r['fecha'] ?? '',
+            $r['email'] ?? '', $r['eps'] ?? '', $r['rh'] ?? '', $r['telefono_familiar'] ?? '',
+            $r['fecha_registro'] ?? $r['fecha'] ?? '',
         ], ';');
     }
     exit;
@@ -72,6 +73,9 @@ function escapar(?string $valor): string
     .herramientas { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
     .herramientas input { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid var(--borde); border-radius: 10px; font: inherit; }
     .boton-csv { display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 10px; background: var(--primario); color: var(--blanco); text-decoration: none; font-weight: 600; }
+    .rh { display: inline-block; min-width: 2.6em; padding: .15rem .5rem; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-weight: 700; font-size: .82rem; text-align: center; }
+    .tarjeta--ancha { max-width: 1240px; }
+    .tabla-contenedor td { white-space: nowrap; }
     .boton-csv:hover { background: var(--primario-oscuro); }
   </style>
 </head>
@@ -98,14 +102,14 @@ function escapar(?string $valor): string
             <p class="vacio">Aún no hay inscripciones registradas.</p>
           <?php else: ?>
             <div class="herramientas">
-              <input type="search" id="buscar" placeholder="Buscar por cédula, nombre, celular o email…">
+              <input type="search" id="buscar" placeholder="Buscar por cédula, nombre, celular, email o EPS…">
               <a class="boton-csv" href="?csv=1">Descargar CSV</a>
             </div>
 
             <div class="tabla-contenedor">
               <table>
                 <thead>
-                  <tr><th>#</th><th>Cédula</th><th>Nombre completo</th><th>Celular</th><th>Email</th><th>Fecha</th></tr>
+                  <tr><th>#</th><th>Cédula</th><th>Nombre completo</th><th>Celular</th><th>Email</th><th>EPS</th><th>RH</th><th>Tel. familiar</th><th>Fecha</th></tr>
                 </thead>
                 <tbody id="filas">
                   <?php foreach ($registros as $i => $r): ?>
@@ -115,6 +119,9 @@ function escapar(?string $valor): string
                       <td><?= escapar($r['nombre']  ?? '') ?></td>
                       <td><?= escapar($r['celular'] ?? '') ?></td>
                       <td><?= escapar($r['email']   ?? '') ?></td>
+                      <td><?= escapar($r['eps']     ?? '') ?></td>
+                      <td><?php if (($r['rh'] ?? '') !== ''): ?><span class="rh"><?= escapar($r['rh']) ?></span><?php endif; ?></td>
+                      <td><?= escapar($r['telefono_familiar'] ?? '') ?></td>
                       <td><?= escapar($r['fecha_registro'] ?? $r['fecha'] ?? '') ?></td>
                     </tr>
                   <?php endforeach; ?>

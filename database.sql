@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS inscripciones (
   nombre         VARCHAR(150) NOT NULL,
   celular        VARCHAR(20)  NOT NULL,
   email          VARCHAR(150) NOT NULL,
+  eps            VARCHAR(100) NOT NULL DEFAULT '',
+  rh             VARCHAR(3)   NOT NULL DEFAULT '',
+  telefono_familiar VARCHAR(20) NOT NULL DEFAULT '',
   fecha_registro TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_inscripciones_cedula (cedula),
   UNIQUE KEY uq_inscripciones_email (email)

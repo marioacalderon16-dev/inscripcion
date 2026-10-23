@@ -161,6 +161,86 @@ body {
   color: var(--error);
 }
 
+/* ---------- Títulos de sección del formulario ---------- */
+.seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin: 1.6rem 0 1rem;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--primario);
+}
+.seccion-titulo:first-of-type { margin-top: 0; }
+.seccion-titulo::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.campo__ayuda {
+  display: block;
+  margin-top: .3rem;
+  font-size: .8rem;
+  color: var(--texto-suave);
+}
+
+/* ---------- Selector de RH (radios con aspecto de botón) ---------- */
+fieldset.campo { border: none; min-width: 0; }
+
+fieldset.campo legend {
+  font-size: .9rem;
+  font-weight: 600;
+  margin-bottom: .4rem;
+  padding: 0;
+}
+
+.opciones-rh {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+}
+
+.opcion-rh { position: relative; cursor: pointer; }
+
+.opcion-rh input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.opcion-rh span {
+  display: block;
+  padding: .7rem 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: .95rem;
+  color: var(--texto);
+  background: #fafbfc;
+  border: 1.5px solid var(--borde);
+  border-radius: 10px;
+  transition: background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
+}
+
+.opcion-rh:hover span { border-color: var(--primario); background: var(--primario-suave); }
+.opcion-rh:active span { transform: scale(.97); }
+
+.opcion-rh input:checked + span {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primario), var(--violeta));
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, .28);
+}
+
+.opcion-rh input:focus-visible + span {
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, .2);
+}
+
+.campo--error .opcion-rh span { border-color: var(--error); background: var(--error-fondo); }
+
 /* ---------- Botón de envío ---------- */
 .boton {
   width: 100%;
@@ -275,7 +355,7 @@ body {
   width: 100%;
   border-collapse: collapse;
   font-size: .9rem;
-  min-width: 680px;
+  min-width: 980px;
 }
 
 .tabla-contenedor thead th {
