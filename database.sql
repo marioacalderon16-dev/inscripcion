@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS inscripciones (
   celular        VARCHAR(20)  NOT NULL,
   email          VARCHAR(150) NOT NULL,
   fecha_registro TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_inscripciones_cedula (cedula)
+  UNIQUE KEY uq_inscripciones_cedula (cedula),
+  UNIQUE KEY uq_inscripciones_email (email)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;

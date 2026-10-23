@@ -31,7 +31,7 @@ if (!empty($_POST['sitio_web'])) {
 $cedula  = str_replace([' ', '-', '.'], '', limpiar($_POST['cedula']  ?? ''));
 $nombre  = limpiar($_POST['nombre']  ?? '');
 $celular = str_replace([' ', '-'], '', limpiar($_POST['celular'] ?? ''));
-$email   = limpiar($_POST['email']   ?? '');
+$email   = strtolower(limpiar($_POST['email']   ?? ''));
 
 /* 4) Validación en el servidor (mismas reglas que en JS) ----------- */
 $errores = [];
@@ -86,6 +86,10 @@ try {
 
     responder(true, '¡Inscripción registrada con éxito!');
 } catch (DominioDuplicadoException $e) {
+    if ($e->campo === 'email') {
+        responder(false, 'Este email ya se encuentra registrado.',
+            ['email' => 'Email ya registrado.'], 409);
+    }
     responder(false, 'Esta cédula ya se encuentra registrada.',
         ['cedula' => 'Cédula ya registrada.'], 409);
 } catch (Throwable $e) {
@@ -99,7 +103,7 @@ try {
 
 /**
  * Guarda la inscripción en la tabla MySQL "inscripciones".
- * Lanza DominioDuplicadoException si la cédula ya existe.
+ * Lanza DominioDuplicadoException si la cédula o el email ya existen.
  */
 function guardarEnMysql(string $cedula, string $nombre, string $celular, string $email): void
 {
@@ -117,7 +121,9 @@ function guardarEnMysql(string $cedula, string $nombre, string $celular, string 
     } catch (PDOException $e) {
         /* 23000 = violación de integridad (cédula duplicada, clave UNIQUE) */
         if ($e->getCode() === '23000') {
-            throw new DominioDuplicadoException();
+            throw new DominioDuplicadoException(
+                str_contains($e->getMessage(), 'uq_inscripciones_email') ? 'email' : 'cedula'
+            );
         }
         throw $e;
     }
@@ -125,7 +131,7 @@ function guardarEnMysql(string $cedula, string $nombre, string $celular, string 
 
 /**
  * Guarda la inscripción en registros.json (modo sin base de datos).
- * Lanza DominioDuplicadoException si la cédula ya existe.
+ * Lanza DominioDuplicadoException si la cédula o el email ya existen.
  */
 function guardarEnJson(string $cedula, string $nombre, string $celular, string $email): void
 {
@@ -133,7 +139,10 @@ function guardarEnJson(string $cedula, string $nombre, string $celular, string $
 
     foreach ($registros as $registro) {
         if (($registro['cedula'] ?? '') === $cedula) {
-            throw new DominioDuplicadoException();
+            throw new DominioDuplicadoException('cedula');
+        }
+        if (strtolower($registro['email'] ?? '') === $email) {
+            throw new DominioDuplicadoException('email');
         }
     }
 

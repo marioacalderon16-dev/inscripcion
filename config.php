@@ -36,10 +36,10 @@ const ARCHIVO_JSON = __DIR__ . '/registros.json';
    de PHP. Si el envío falla (ej. servidor sin correo configurado),
    la inscripción se guarda igual y el error queda en el log.
    Personalice estas direcciones antes de subir a producción.       */
-const NOTIFICACION_ACTIVADA       = true;                     // notificar al administrador
+const NOTIFICACION_ACTIVADA       = false;                    // notificar al administrador
 const EMAIL_NOTIFICACION          = 'admin@tudominio.com';    // correo que recibe la notificación
 const EMAIL_REMITENTE             = 'no-reply@tudominio.com'; // remitente de los correos
-const ENVIAR_CONFIRMACION_USUARIO = true;                     // confirmación al inscrito
+const ENVIAR_CONFIRMACION_USUARIO = false;                    // confirmación al inscrito
 
 /* ==================================================================
  *  Funciones auxiliares
@@ -73,7 +73,8 @@ function obtenerConexion(): PDO
            celular        VARCHAR(20)  NOT NULL,
            email          VARCHAR(150) NOT NULL,
            fecha_registro TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-           UNIQUE KEY uq_inscripciones_cedula (cedula)
+           UNIQUE KEY uq_inscripciones_cedula (cedula),
+           UNIQUE KEY uq_inscripciones_email (email)
          ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci'
     );
 
@@ -93,9 +94,13 @@ function leerRegistrosJson(): array
     return is_array($datos) ? $datos : [];
 }
 
-/** Excepción interna para registros duplicados (cédula repetida). */
+/** Excepción interna para registros duplicados; $campo indica cuál ('cedula' o 'email'). */
 class DominioDuplicadoException extends Exception
 {
+    public function __construct(public readonly string $campo = 'cedula')
+    {
+        parent::__construct("Duplicado: $campo");
+    }
 }
 
 /** Envía la respuesta JSON y finaliza el script. */
