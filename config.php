@@ -18,13 +18,15 @@
  */
 declare(strict_types=1);
 
-const MODO_ALMACENAMIENTO = 'json';   /* 'json' o 'mysql' */
+define('MODO_ALMACENAMIENTO', getenv('MYSQLHOST') ? 'mysql' : 'json');   /* 'json' o 'mysql' */
 
 /* ---------- Credenciales MySQL (solo si modo = 'mysql') ---------- */
-const DB_HOST = 'localhost';
-const DB_NAME = 'inscripciones';
-const DB_USER = 'root';
-const DB_PASS = '';
+/* En Railway se leen de las variables de entorno del servicio MySQL. */
+define('DB_HOST', getenv('MYSQLHOST') ?: 'localhost');
+define('DB_PORT', getenv('MYSQLPORT') ?: '3306');
+define('DB_NAME', getenv('MYSQLDATABASE') ?: 'inscripciones');
+define('DB_USER', getenv('MYSQLUSER') ?: 'root');
+define('DB_PASS', getenv('MYSQLPASSWORD') ?: '');
 
 /* ---------- Archivo JSON (solo si modo = 'json') ----------------- */
 const ARCHIVO_JSON = __DIR__ . '/registros.json';
@@ -52,7 +54,7 @@ function limpiar(string $valor): string
 /** Devuelve una conexión PDO configurada (modo mysql). */
 function obtenerConexion(): PDO
 {
-    $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+    $dsn = 'mysql:host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME . ';charset=utf8mb4';
 
     $opciones = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -60,7 +62,22 @@ function obtenerConexion(): PDO
         PDO::ATTR_EMULATE_PREPARES   => false,
     ];
 
-    return new PDO($dsn, DB_USER, DB_PASS, $opciones);
+    $pdo = new PDO($dsn, DB_USER, DB_PASS, $opciones);
+
+    /* Crea la tabla si aún no existe (mismo esquema que database.sql). */
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS inscripciones (
+           id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+           cedula         VARCHAR(20)  NOT NULL,
+           nombre         VARCHAR(150) NOT NULL,
+           celular        VARCHAR(20)  NOT NULL,
+           email          VARCHAR(150) NOT NULL,
+           fecha_registro TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+           UNIQUE KEY uq_inscripciones_cedula (cedula)
+         ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci'
+    );
+
+    return $pdo;
 }
 
 /** Lee todas las inscripciones del archivo JSON (modo json). */

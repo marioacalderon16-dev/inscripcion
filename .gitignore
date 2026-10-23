@@ -1,0 +1,18 @@
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Entorno / credenciales
+.env
+.env.*
+
+# Datos locales
+registros.json
+*.log
+
+# Editores
+.vscode/
+.idea/
+
+# Railway
+.railway/
